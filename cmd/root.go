@@ -35,7 +35,7 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "convcommitlint",
 	Short: "Lint conventional commits",
-	Long: `A simple, slightly opinionated, yet usable linter for conventional commits written in Go`,
+	Long:  `A simple, slightly opinionated, yet usable linter for conventional commits written in Go`,
 	Run: func(cmd *cobra.Command, args []string) {
 		lint()
 	},
