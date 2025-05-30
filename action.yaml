@@ -1,0 +1,55 @@
+name: 'commit lint'
+description: 'Check if commits follow the conventional commits standard'
+inputs:
+  base-branch:  # id of input
+    description: 'base branch to lint from'
+    required: false
+    default: "main"
+  comment-only:
+    description: 'Do not request changes on pull requests'
+    required: false
+    default: "false"
+  create-review:
+    description: 'Creates a pull request revie'
+    required: false
+    default: "true"
+  current:
+    description: 'Lints only current commit'
+    required: false
+    default: "false"
+  lint-all:
+    description: 'Lints all commits in the history'
+    required: false
+    default: "false"
+  path:
+    description: 'Path to the repository'
+    required: false
+    default: "./"
+  version: 
+    description: 'go conventional commit version to run'
+    required: false
+    default: "latest"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 #v5.5.0
+      with:
+        go-version: '>=1.24'
+    - name: "install conventional commit lint"
+      shell: bash
+      run: go install github.com/coolapso/convcommitlint@${{ inputs.version }}
+    - name: "Lint commits"
+      shell: bash
+      run: |
+        export CONVCOMLINT_BASE_BRANCH=${{ inputs.base-branch }}
+        export CONVCOMLINT_COMMENT_ONLY=${{ inputs.comment-only }}
+        export CONVCOMLINT_CREATE_REVIEW=${{ inputs.create-review }}
+        export CONVCOMLINT_CURRENT=${{ inputs.current }}
+        export CONVCOMLINT_LINT_ALL=${{ inputs.lint-all }}
+        export CONVCOMLINT_PATH=${{ inputs.path }}
+        convcommitlint
+
+
+
+

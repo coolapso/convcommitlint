@@ -1,0 +1,28 @@
+# .goreleaser.yaml
+builds:
+  - binary: convcommitlint
+    env:
+    - CGO_ENABLED=0
+    ldflags:
+    - -X github.com/coolapso/convcommitlint/cmd.Version={{.Version}}
+
+aurs:
+  - name: convcommitlint-bin
+    homepage: "https://github.com/coolapso/convcommitlint"
+    description: "A simple, opinionated, yet usable linter for conventional commits, written in Go."
+    maintainers:
+      - "coolapso <coolapso@coolapso.tech>"
+
+    license: "MIT"
+    private_key: "{{ .Env.AUR_KEY }}"
+    git_url: "ssh://aur@aur.archlinux.org/convcommitlint-bin.git"
+    skip_upload: auto
+
+    # Git author used to commit to the repository.
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+
+announce:
+  discord:
+    enabled: true
