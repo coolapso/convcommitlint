@@ -41,10 +41,14 @@ Github action is available to use with your CI pipelines and most arguments from
   convcommitlint:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: coolapso/convcommitlint@v0
 ```
 
 You can find the available inputs in the [action.yaml](action.yaml) file, if a input is not available you still should be able to use it by setting the associated ENV variable.
+
+> [!IMPORTANT]  
+> Be sure to include the Checkout in your workflow, this action won't do it for you!
 
 ### Docker
 
