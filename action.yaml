@@ -37,7 +37,7 @@ runs:
     - name: 'get base branch last commit'
       run: git fetch origin ${{ inputs.base-branch }}:${{ inputs.base-branch }} --depth 1
       shell: bash
-      if: ${{ github.head_ref != inputs.base-branch }}
+      if: ${{ github.ref_name != inputs.base-branch }}
     - name: "Lint commits"
       shell: bash
       run: |
