@@ -80,26 +80,6 @@ func TestLintFooter(t *testing.T) {
 		}
 	})
 
-	t.Run("invalid capitals", func(t *testing.T) {
-		trailers := [][]string{
-			{"KEY: VALUE"},
-			{"KEY: value"},
-			{"key: VALUE"},
-		}
-		want := errInvalidFooterUpperCase
-
-		for _, trailer := range trailers {
-			got := lintFooter(trailer)
-			if got == nil {
-				t.Fatal("want error got nil")
-			}
-
-			if !slices.Contains(got, want) {
-				t.Fatalf("Trailer: [ %v ], want error: [ %v ], got: %v", trailer, want, got)
-			}
-		}
-	})
-
 	t.Run("invalid keys with spaces", func(t *testing.T) {
 		trailer := []string{"key pair: value"}
 		want := errInvalidFooterSpace

@@ -52,18 +52,11 @@ func lintFooter(f []string) (errs []error) {
 					}
 				}
 
-				if s[0] == strings.ToUpper(s[0]) {
-					errs = append(errs, errInvalidFooterUpperCase)
-				}
-
 				if strings.Contains(s[0], " ") {
 					errs = append(errs, errInvalidFooterSpace)
 				}
 			}
 
-			if s[1] == strings.ToUpper(s[1]) {
-				errs = append(errs, errInvalidFooterUpperCase)
-			}
 		}
 	}
 
