@@ -226,22 +226,3 @@ the convention`
 		}
 	})
 }
-
-func TestEmptyLine(t *testing.T) {
-	testsCases := []struct {
-		want   bool
-		string string
-	}{
-		{want: true, string: ""},
-		{want: true, string: " "},
-		{want: true, string: "\n"},
-		{want: false, string: "foo"},
-	}
-
-	for i, testCase := range testsCases {
-		got := emptyLine(testCase.string)
-		if testCase.want != got {
-			t.Fatalf("case [ %v ]: want [ %v ], got [ %v ]", i, testCase.want, got)
-		}
-	}
-}

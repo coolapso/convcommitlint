@@ -6,10 +6,12 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"context"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/google/go-github/v72/github"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -21,6 +23,7 @@ type message struct {
 }
 
 var (
+	Version       = "DEV"
 	path          = "./"
 	baseBranch    = "main"
 	lintAll       bool
@@ -29,7 +32,8 @@ var (
 	prNumber      int
 	repository    string
 	commentOnly   bool
-	Version       = "DEV"
+	commentDrafts bool
+	token		  string
 )
 
 var rootCmd = &cobra.Command{
@@ -50,6 +54,12 @@ var versionCmd = &cobra.Command{
 }
 
 func lint() {
+	if createReview {
+		if err := initGHSettings(); err != nil {
+			log.Fatal(err)	
+		}
+	}
+
 	r, err := git.PlainOpen(path)
 	if err != nil {
 		log.Fatal("Failed to open repository")
@@ -113,25 +123,25 @@ func lint() {
 	if issuesFound {
 		fmt.Print(issuesMessage)
 		if createReview {
-			err := createPrReview(issuesMessage)
+			client := github.NewClient(nil).WithAuthToken(token)
+			owner, repo := splitOwnerRepo(repository)
+			pr, r, err := client.PullRequests.Get(context.TODO(), owner, repo, prNumber)
+			if err != nil || r.StatusCode != 200 {
+				log.Fatalf("failed to get pull request data, response: %v,  err: %v", fmt.Sprintf(r.Status, r.Response.Body), err)
+			}
+
+			if prIsDraft(pr) && !commentDrafts {
+				log.Println("PR is a draft, if you want to comment on draft PRs, use --comment-drafts flag")
+				os.Exit(1)
+			}
+
+			err = createPrReview(client, issuesMessage)
 			if err != nil {
 				log.Println("Failed to create pull request review: ", err)
 			}
 		}
 		os.Exit(1)
 	}
-}
-
-func getBaseRef(r *git.Repository, branchName string) (baseRef *plumbing.Reference, err error) {
-	if !lintAll {
-		baseRefName := plumbing.NewBranchReferenceName(branchName)
-		baseRef, err = r.Reference(baseRefName, true)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return baseRef, nil
 }
 
 func printIssues(issues []error, c *object.Commit) string {
@@ -209,14 +219,6 @@ func lintCommitMessage(msg message) (errs []error) {
 	return errs
 }
 
-func emptyLine(s string) bool {
-	if s == "" || s == " " || s == "\n" {
-		return true
-	}
-
-	return false
-}
-
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
@@ -262,6 +264,10 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&repository, "repository", "", "The github repository in owner/name format ex: coolapso/convcommitlint")
 	_ = viper.BindPFlag("repository", rootCmd.Flags().Lookup("repository"))
 	repository = viper.GetString("repository")
+
+	rootCmd.PersistentFlags().BoolVar(&commentDrafts, "comment-drafts", false, "Comment on draft pull requests")
+	_ = viper.BindPFlag("comment-drafts", rootCmd.Flags().Lookup("comment-drafts"))
+	commentDrafts = viper.GetBool("comment-drafts")
 
 	rootCmd.MarkFlagsMutuallyExclusive("lint-all", "current", "base-branch")
 }

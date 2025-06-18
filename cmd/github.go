@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"github.com/google/go-github/v72/github"
 	"log"
-	"os"
-	"strconv"
 	"strings"
 )
 
@@ -19,29 +17,7 @@ const (
 
 // reviewGHPR creates a github pull request review
 // If no PR Number is provided in flags or env variable, tries to guess it from github actions context
-func createPrReview(issuesMessage string) (err error) {
-	token, exists := os.LookupEnv("GITHUB_TOKEN")
-	if !exists {
-		return errMissingGHToken
-	}
-
-	if prNumber == 0 {
-		if !githubAction() {
-			return errMissingPRNum
-		}
-
-		prNumber, err = getPRNumber()
-		if err != nil {
-			return fmt.Errorf("failed to get pull request number from github context GITHUB_REF_NAME, %v", err)
-		}
-	}
-
-	if repository == "" {
-		if repository, exists = os.LookupEnv("GITHUB_REPOSITORY"); !exists {
-			return errMissingRepository
-		}
-	}
-
+func createPrReview(c *github.Client, issuesMessage string) (err error) {
 	owner, repo := splitOwnerRepo(repository)
 	event := "REQUEST_CHANGES"
 	if commentOnly {
@@ -51,14 +27,13 @@ func createPrReview(issuesMessage string) (err error) {
 	markdownIssues := strings.ReplaceAll(issuesMessage, "\t", "")
 	reviewMessage := reviewTitle + reviewTitleText + markdownIssues + whatNowTitle + whatNowText
 
-	client := github.NewClient(nil).WithAuthToken(token)
 	review := github.PullRequestReviewRequest{
 		Body:  &reviewMessage,
 		Event: &event,
 	}
 
 	fmt.Println(owner + " " + repo)
-	_, resp, err := client.PullRequests.CreateReview(context.TODO(), owner, repo, prNumber, &review)
+	_, resp, err := c.PullRequests.CreateReview(context.TODO(), owner, repo, prNumber, &review)
 	if err != nil {
 		log.Fatal("failed to create pull request review: ", err)
 	}
@@ -71,29 +46,3 @@ func createPrReview(issuesMessage string) (err error) {
 	return nil
 }
 
-func splitOwnerRepo(repository string) (owner, repo string) {
-	owner = strings.Split(repository, "/")[0]
-	repo = strings.Split(repository, "/")[1]
-
-	return owner, repo
-}
-
-func getPRNumber() (n int, err error) {
-	return strconv.Atoi(strings.Split(os.Getenv("GITHUB_REF_NAME"), "/")[0])
-}
-
-func githubAction() bool {
-	if _, e := os.LookupEnv("GITHUB_ACTIONS"); e {
-		return true
-	}
-
-	return false
-}
-
-func pullRequest() bool {
-	if v := os.Getenv("GITHUB_EVENT_TYPE"); v == "pull_request" {
-		return true
-	}
-
-	return false
-}
