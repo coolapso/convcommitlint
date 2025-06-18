@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"testing"
-	"os"
 	"github.com/google/go-github/v72/github"
+	"os"
+	"testing"
 )
 
 func TestGetGHToken(t *testing.T) {
@@ -30,13 +30,13 @@ func TestGetGHToken(t *testing.T) {
 	})
 }
 
-func TestPRisDraft(t *testing.T) { 
+func TestPRisDraft(t *testing.T) {
 	want := true
 	ghpr := &github.PullRequest{
 		Draft: &want,
 	}
 	got := prIsDraft(ghpr)
-	if got != want { 
+	if got != want {
 		t.Fatalf("Expected [ %v ], got [ %v ]", want, got)
 	}
 }
@@ -128,7 +128,6 @@ func TestSplitOwnerRepo(t *testing.T) {
 	}
 }
 
-
 func TestPullRequest(t *testing.T) {
 	t.Run("Is pull request", func(t *testing.T) {
 		_ = os.Setenv("GITHUB_EVENT_TYPE", "pull_request")
@@ -148,7 +147,6 @@ func TestPullRequest(t *testing.T) {
 		}
 	})
 }
-
 
 func TestEmptyLine(t *testing.T) {
 	testsCases := []struct {

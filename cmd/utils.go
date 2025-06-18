@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -52,12 +52,12 @@ func getRepository() (string, error) {
 	repo, exists := os.LookupEnv("GITHUB_REPOSITORY")
 	if !exists {
 		return "", errMissingRepository
-	}	
+	}
 
 	return repo, nil
 }
 
-func prIsDraft(pr *github.PullRequest) bool { 
+func prIsDraft(pr *github.PullRequest) bool {
 	return pr.GetDraft()
 }
 

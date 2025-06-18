@@ -1,12 +1,12 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"slices"
 	"strings"
-	"context"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -33,7 +33,7 @@ var (
 	repository    string
 	commentOnly   bool
 	commentDrafts bool
-	token		  string
+	token         string
 )
 
 var rootCmd = &cobra.Command{
@@ -56,7 +56,7 @@ var versionCmd = &cobra.Command{
 func lint() {
 	if createReview {
 		if err := initGHSettings(); err != nil {
-			log.Fatal(err)	
+			log.Fatal(err)
 		}
 	}
 

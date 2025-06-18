@@ -45,4 +45,3 @@ func createPrReview(c *github.Client, issuesMessage string) (err error) {
 
 	return nil
 }
-
