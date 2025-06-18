@@ -43,12 +43,14 @@ func TestPRisDraft(t *testing.T) {
 
 func TestGetRepository(t *testing.T) {
 	t.Run("missing repository", func(t *testing.T) {
+		_ = os.Unsetenv("GITHUB_REPOSITORY")
 		want := errMissingRepository
 		_, err := getRepository()
 		if err != want {
 			t.Fatalf("Expected error [ %v ], got [ %v ]", want, err)
 		}
 	})
+
 	t.Run("valid repository", func(t *testing.T) {
 		want := "owner/repo"
 		_ = os.Setenv("GITHUB_REPOSITORY", want)
