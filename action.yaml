@@ -8,7 +8,7 @@ inputs:
     description: 'git fetch depth when checking out the repository'
     required: false
     default: "0"
-  base-branch:  # id of input
+  base-branch:
     description: 'base branch to lint from'
     required: false
     default: "main"
@@ -16,6 +16,10 @@ inputs:
     description: 'Creates a pull request review'
     required: false
     default: "true"
+  comment-drafts:
+    description: 'Create comments on draft pull requests'
+    required: false
+    default: "false"
   version: 
     description: 'go conventional commit version to run'
     required: false
@@ -41,8 +45,4 @@ runs:
     - name: "Lint commits"
       shell: bash
       run: |
-        convcommitlint -b ${{ inputs.base-branch }} --create-review=${{ inputs.create-review }}
-
-
-
-
+        convcommitlint -b ${{ inputs.base-branch }} --create-review=${{ inputs.create-review }} --comment-drafts=${{ inputs.comment-drafts }}
