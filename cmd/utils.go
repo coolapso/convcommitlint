@@ -12,28 +12,29 @@ import (
 )
 
 // This function could use a better name
+// This function could use some tests, but ghactions doesn't let overide env variables
 func initGHSettings() (err error) {
-	token, err = getGHToken()
-	if err != nil {
-		return err
+	if repository == "" {
+		repository, err = getRepository()
+		if err != nil {
+			return err
+		}
 	}
 
-	if prNumber == 0 {
-		if !githubAction() {
-			return errMissingPRNum
-		}
+	if !githubAction() && prNumber == 0 {
+		return errMissingPRNum
+	}
 
+	if pullRequest() {
 		prNumber, err = getPRNumber()
 		if err != nil {
 			return fmt.Errorf("failed to get pull request number from github context GITHUB_REF_NAME, %v", err)
 		}
 	}
 
-	if repository == "" {
-		repository, err = getRepository()
-		if err != nil {
-			return err
-		}
+	token, err = getGHToken()
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -74,7 +75,7 @@ func githubAction() bool {
 }
 
 func pullRequest() bool {
-	if v := os.Getenv("GITHUB_EVENT_TYPE"); v == "pull_request" {
+	if v := os.Getenv("GITHUB_EVENT_NAME"); v == "pull_request" {
 		return true
 	}
 

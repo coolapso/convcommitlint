@@ -132,7 +132,20 @@ func TestSplitOwnerRepo(t *testing.T) {
 
 func TestPullRequest(t *testing.T) {
 	t.Run("Is pull request", func(t *testing.T) {
-		_ = os.Setenv("GITHUB_EVENT_TYPE", "pull_request")
+		if _, ok := os.LookupEnv("GITHUB_ACTIONS"); !ok {
+			_ = os.Setenv("GITHUB_EVENT_NAME", "pull_request")
+			defer os.Unsetenv("GITHUB_EVENT_NAME")
+		}
+
+		var eventTemp string
+		if _, ok := os.LookupEnv("GITHUB_ACTIONS"); ok {
+			if v := os.Getenv("GITHUB_EVENT_NAME"); v != "pull_request" {
+				eventTemp = v
+				os.Setenv("GITHUB_EVENT_NAME", "pull_request")
+				defer func() { os.Setenv("GITHUB_EVENT_NAME", eventTemp) }()
+			}
+		}
+
 		want := true
 		got := pullRequest()
 		if got != want {
@@ -141,7 +154,7 @@ func TestPullRequest(t *testing.T) {
 	})
 
 	t.Run("Is not pull request", func(t *testing.T) {
-		_ = os.Setenv("GITHUB_EVENT_TYPE", "push")
+		_ = os.Setenv("GITHUB_EVENT_NAME", "push")
 		want := false
 		got := pullRequest()
 		if got != want {
