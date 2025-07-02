@@ -45,11 +45,35 @@ jobs:
       - name: test build
         run: go build -o convcommitlint
 
-  convcommitlint:
+      - uses: actions/upload-artifact@v4
+        with:
+          name: convcommitlint
+          path: convcommitlint
+
+
+  check-commits:
     runs-on: ubuntu-latest
+    needs: test
     steps:
       - uses: actions/checkout@v4
-      - uses: ./
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+
+      - name: 'get base branch last commit'
+        run: git fetch origin main:main --depth 1
+        shell: bash
+        if: ${{ github.ref_name != 'main' }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: convcommitlint
+
+      - name: chmod +x
+        run: chmod +x convcommitlint
+
+      - name: check commits
+        run: ./convcommitlint -b main --create-review="true" --comment-drafts="false"
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
