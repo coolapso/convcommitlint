@@ -86,10 +86,12 @@ You can use `convcommitlint` as part of your CI pipeline. Most CLI arguments are
 
 ```yaml
 convcommitlint:
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v4
-    - uses: coolapso/convcommitlint@v0
+    runs-on: ubuntu-latest
+    steps: 
+      - uses: actions/checkout@v4
+      - uses: coolapso/convcommitlint@v0.3.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ### Base Branch
@@ -101,7 +103,9 @@ convcommitlint:
   runs-on: ubuntu-latest
   steps:
     - uses: actions/checkout@v4
-    - uses: coolapso/convcommitlint@v0
+    - uses: coolapso/convcommitlint@v0.3.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with: 
         base-branch: develop
 ```
@@ -115,7 +119,9 @@ convcommitlint:
   runs-on: ubuntu-latest
   steps:
     - uses: actions/checkout@v4
-    - uses: coolapso/convcommitlint@v0
+    - uses: coolapso/convcommitlint@v0.3.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with: 
         fetch-depth: 10
 ```
@@ -129,7 +135,7 @@ convcommitlint:
   runs-on: ubuntu-latest
   steps:
     - uses: actions/checkout@v4
-    - uses: coolapso/convcommitlint@v0
+    - uses: coolapso/convcommitlint@v0.3.0
       with: 
         create-review: "false"
 ```
@@ -143,7 +149,9 @@ convcommitlint:
   runs-on: ubuntu-latest
   steps:
     - uses: actions/checkout@v4
-    - uses: coolapso/convcommitlint@v0
+    - uses: coolapso/convcommitlint@v0.3.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with: 
         version: v0.2.0
 ```
