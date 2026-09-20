@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=https://registry.semrel.io/schemas/core/v1.json
 schemaVersion: 1
 tagPrefix: v
+commit_changelog: false
 
 branches:
   - name: main
