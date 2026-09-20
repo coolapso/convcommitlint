@@ -37,15 +37,15 @@ jobs:
         run: |
           go install github.com/SemRels/semrel/cmd/semrel@v0.26.2
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
-          semrel plugin install @semrel/provider-github@0.1.0
+          semrel plugin restore
 
       - name: Release with semrel
         id: semrel
         run: semrel release --github-output
         env:
-          SEMREL_PLUGIN_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SEMREL_PLUGIN_TOKEN: ${{ github.token }}
 
-      # semrel creates the tag and GitHub release. GoReleaser then attaches the
+      # Semrel creates the tag and GitHub release. GoReleaser then attaches the
       # compiled assets and retains the existing release notes while publishing
       # the AUR package and Discord announcement.
       - name: Publish release artifacts
