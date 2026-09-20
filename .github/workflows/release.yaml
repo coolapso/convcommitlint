@@ -12,21 +12,43 @@ jobs:
   release:
     needs: tests
     runs-on: ubuntu-latest
+    concurrency:
+      group: semrel-release-${{ github.repository }}-${{ github.ref }}
+      cancel-in-progress: false
     permissions:
       contents: write
     outputs:
       version: ${{ steps.semrel.outputs.version }}
+      released: ${{ steps.semrel.outputs.released }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version: '>=1.23'
-      - uses: go-semantic-release/action@v1
+
+      - name: Install semrel
+        run: |
+          go install github.com/SemRels/semrel/cmd/semrel@v0.26.2
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+          semrel plugin install @semrel/provider-github@0.1.0
+
+      - name: Release with semrel
         id: semrel
+        run: semrel release --github-output
+        env:
+          SEMREL_PLUGIN_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # semrel creates the tag and GitHub release. GoReleaser then attaches the
+      # compiled assets and retains the existing release notes while publishing
+      # the AUR package and Discord announcement.
+      - name: Publish release artifacts
+        if: ${{ steps.semrel.outputs.released == 'true' }}
+        uses: goreleaser/goreleaser-action@v7
         with:
-          custom-arguments: '--commit-analyzer-opt patch_release_rules=fix,ref,build'
-          hooks: goreleaser
-          allow-initial-development-versions: true
+          version: '~> v2'
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AUR_KEY: ${{ secrets.AUR_KEY }}
@@ -43,8 +65,7 @@ jobs:
   docker:
     needs: release
     uses: coolapso/convcommitlint/.github/workflows/docker.yaml@main
-    if: ${{ needs.release.outputs.version != '' }}
+    if: ${{ needs.release.outputs.released == 'true' }}
     secrets: inherit
     with:
       release_tag: ${{ needs.release.outputs.version }}
-

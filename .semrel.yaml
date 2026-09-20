@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://registry.semrel.io/schemas/core/v1.json
+schemaVersion: 1
+tagPrefix: v
+
+branches:
+  - name: main
+
+rules:
+  - type: feat
+    bump: minor
+  - type: fix
+    bump: patch
+  - type: ref
+    bump: patch
+  - type: build
+    bump: patch
+
+plugins:
+  - uses: "@semrel/provider-github"
+    phase: release
