@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/google/go-github/v72/github"
 )
 
@@ -99,6 +100,44 @@ func getBaseRef(r *git.Repository, branchName string) (baseRef *plumbing.Referen
 	}
 
 	return baseRef, nil
+}
+
+// commitsSinceBase returns the commits reachable from head but not from base,
+// matching Git's base..head revision range even when the branches have
+// diverged. Stopping when a walk first reaches base misses the common ancestor
+// when base is not itself an ancestor of head.
+func commitsSinceBase(r *git.Repository, head, base plumbing.Hash) ([]*object.Commit, error) {
+	baseIter, err := r.Log(&git.LogOptions{From: base})
+	if err != nil {
+		return nil, err
+	}
+	defer baseIter.Close()
+
+	baseCommits := make(map[plumbing.Hash]struct{})
+	if err := baseIter.ForEach(func(c *object.Commit) error {
+		baseCommits[c.Hash] = struct{}{}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	headIter, err := r.Log(&git.LogOptions{From: head})
+	if err != nil {
+		return nil, err
+	}
+	defer headIter.Close()
+
+	var commits []*object.Commit
+	if err := headIter.ForEach(func(c *object.Commit) error {
+		if _, found := baseCommits[c.Hash]; !found {
+			commits = append(commits, c)
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return commits, nil
 }
 
 func emptyLine(s string) bool {

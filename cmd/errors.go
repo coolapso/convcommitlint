@@ -13,7 +13,6 @@ var (
 	errTypoHeaderFeat            = errors.New("invalid header format: Posssible typo, did you mean feat?")
 	errLongHeader                = errors.New("description should be <= 72 characters")
 	errInvalidHeaderFormat       = errors.New("invalid header format. Expected: type(optional scope): description")
-	errStop                      = errors.New("stop iterations")
 	errMissingPRNum              = errors.New("missing PR number for review. Set CONVOMLINT_PR_NUMBER or use --pr-number flag when not running on GitHub Actions")
 	errMissingGHToken            = errors.New("github token not found, please make sure token is available to create pull request reviews")
 	errMissingRepository         = errors.New("missing repository information. Set CONVOMLINT_REPOSITORY or use --repository flag when not running on GitHub Actions")

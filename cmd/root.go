@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/google/go-github/v72/github"
 	"github.com/spf13/cobra"
@@ -85,38 +84,40 @@ func lint() {
 			issuesMessage = issuesMessage + printIssues(issues, commit)
 		}
 	} else {
-		cIter, err := r.Log(&git.LogOptions{From: headRef.Hash()})
-		if err != nil {
-			log.Fatal("Failed to get commit history")
-		}
+		var commits []*object.Commit
+		if lintAll {
+			cIter, err := r.Log(&git.LogOptions{From: headRef.Hash()})
+			if err != nil {
+				log.Fatal("Failed to get commit history")
+			}
+			defer cIter.Close()
 
-		var baseRef *plumbing.Reference
-		if !lintAll {
-			baseRef, err = getBaseRef(r, baseBranch)
+			err = cIter.ForEach(func(c *object.Commit) error {
+				commits = append(commits, c)
+				return nil
+			})
+			if err != nil {
+				log.Fatalf("Error iterating commits: %v", err)
+			}
+		} else {
+			baseRef, err := getBaseRef(r, baseBranch)
 			if err != nil {
 				log.Fatalf("Failed to get base branch reference: %v", err)
 			}
+
+			commits, err = commitsSinceBase(r, headRef.Hash(), baseRef.Hash())
+			if err != nil {
+				log.Fatalf("Failed to get commits since base branch: %v", err)
+			}
 		}
 
-		err = cIter.ForEach(func(c *object.Commit) error {
-			if !lintAll {
-				if c.Hash == baseRef.Hash() {
-					return errStop
-				}
-			}
-
+		for _, c := range commits {
 			message := parseCommitMessage(c.Message)
 			issues := lintCommitMessage(message)
 			if issues != nil {
 				issuesFound = true
 				issuesMessage = issuesMessage + printIssues(issues, c)
-
 			}
-			return nil
-		})
-
-		if err != nil && err != errStop {
-			log.Fatalf("Error iterating commits: %v", err)
 		}
 	}
 
