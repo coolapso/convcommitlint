@@ -163,6 +163,23 @@ key2: value`
 		}
 	})
 
+	t.Run("valid multi-paragraph body with colons", func(t *testing.T) {
+		commit := `type(scope): description
+
+This first paragraph contains a colon: it is still ordinary body text.
+
+The second paragraph also contains one: it must not become a trailer.
+Another body line follows it.`
+
+		m := parseCommitMessage(commit)
+		if m.footer != nil {
+			t.Fatalf("expected no footer, got %q", m.footer)
+		}
+		if got := lintCommitMessage(m); got != nil {
+			t.Fatal("Expected no issues got:", got)
+		}
+	})
+
 	t.Run("invalid Missing separator", func(t *testing.T) {
 		commit := `feat(scope) description`
 		m := parseCommitMessage(commit)
@@ -198,7 +215,7 @@ key2: value`
 		}
 	})
 
-	t.Run("Invalid commit message", func(t *testing.T) {
+	t.Run("invalid header with colons in the body", func(t *testing.T) {
 		commit := `This is some commit
 
 This is the commit description
@@ -212,12 +229,7 @@ the convention`
 			t.Fatal("Expected errors, got nil")
 		}
 
-		want := []error{
-			errInvalidHeaderFormat,
-			errInvalidBodyBlankLines,
-			errInvalidFooterSpace,
-			errInvalidFooterFormat,
-		}
+		want := []error{errInvalidHeaderFormat}
 
 		for _, err := range want {
 			if !slices.Contains(got, err) {

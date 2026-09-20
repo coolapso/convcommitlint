@@ -162,25 +162,30 @@ func parseCommitMessage(commitMessage string) (msg message) {
 	lines := strings.Split(commitMessage, "\n")
 	header := strings.TrimSpace(lines[0])
 
-	var bodyLines []string
-	var footerLines []string
-	section := "body"
-	for _, line := range lines[1:] {
-		if footerRegexp.MatchString(line) {
-			section = "footer"
-		}
+	// A trailer block must be at the end of the message and separated from the
+	// body by a blank line. Looking for a trailer anywhere in the body turns
+	// ordinary prose containing a colon into a footer.
+	footerStart, footerEnd := len(lines), len(lines)
+	for footerEnd > 1 && emptyLine(lines[footerEnd-1]) {
+		footerEnd--
+	}
 
-		switch section {
-		case "body":
-			bodyLines = append(bodyLines, line)
-		case "footer":
-			footerLines = append(footerLines, strings.TrimRight(line, "\n"))
+	for i := footerEnd - 1; i >= 1; i-- {
+		if footerRegexp.MatchString(lines[i]) || strings.HasPrefix(lines[i], " ") {
+			footerStart = i
+			continue
 		}
+		break
 	}
 
 	msg.header = parseHeader(header)
-	msg.body = bodyLines
-	msg.footer = footerLines
+	if len(lines) > 1 {
+		msg.body = lines[1:]
+	}
+	if footerStart < footerEnd && footerRegexp.MatchString(lines[footerStart]) && footerStart > 1 && emptyLine(lines[footerStart-1]) {
+		msg.body = lines[1:footerStart]
+		msg.footer = lines[footerStart:footerEnd]
+	}
 
 	return msg
 }
