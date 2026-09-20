@@ -7,7 +7,6 @@ var (
 	errInvalidFooterFormat       = errors.New("invalid footer format: footer should be composed of key: value pairs")
 	errInvalidFooterSpace        = errors.New("invalid footer format: Spaces not allowed on footer keys")
 	errInvalidFooterBreakingTypo = errors.New("invalid footer format: possible typo did you mean BREAKING CHANGES?")
-	errInvalidFooterUpperCase    = errors.New("invalid footer format: Uppercase only is allowed for BREAKING CHANGE")
 	errInvalidFooterEmptyLine    = errors.New("invalid footer format: empty line allowed only at end of footer")
 	errTypoHeaderFix             = errors.New("invalid header format: Posssible typo, did you mean fix?")
 	errTypoHeaderFeat            = errors.New("invalid header format: Posssible typo, did you mean feat?")

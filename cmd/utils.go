@@ -43,7 +43,7 @@ func initGHSettings() (err error) {
 
 func getGHToken() (string, error) {
 	token, exists := os.LookupEnv("GITHUB_TOKEN")
-	if !exists {
+	if !exists || token == "" {
 		return "", errMissingGHToken
 	}
 
@@ -52,7 +52,7 @@ func getGHToken() (string, error) {
 
 func getRepository() (string, error) {
 	repo, exists := os.LookupEnv("GITHUB_REPOSITORY")
-	if !exists {
+	if !exists || repo == "" {
 		return "", errMissingRepository
 	}
 
@@ -68,11 +68,7 @@ func getPRNumber() (n int, err error) {
 }
 
 func githubAction() bool {
-	if _, e := os.LookupEnv("GITHUB_ACTIONS"); e {
-		return true
-	}
-
-	return false
+	return os.Getenv("GITHUB_ACTIONS") != ""
 }
 
 func pullRequest() bool {

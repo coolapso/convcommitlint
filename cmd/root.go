@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"slices"
 	"strings"
@@ -127,8 +128,12 @@ func lint() {
 			client := github.NewClient(nil).WithAuthToken(token)
 			owner, repo := splitOwnerRepo(repository)
 			pr, r, err := client.PullRequests.Get(context.TODO(), owner, repo, prNumber)
-			if err != nil || r.StatusCode != 200 {
-				log.Fatalf("failed to get pull request data, response: %v,  err: %v", fmt.Sprintf(r.Status, r.Response.Body), err)
+			if err != nil || r == nil || r.StatusCode != http.StatusOK {
+				status := ""
+				if r != nil {
+					status = r.Status
+				}
+				log.Fatalf("failed to get pull request data, response status: %s, err: %v", status, err)
 			}
 
 			if prIsDraft(pr) && !commentDrafts {

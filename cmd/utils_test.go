@@ -2,12 +2,12 @@ package cmd
 
 import (
 	"github.com/google/go-github/v72/github"
-	"os"
 	"testing"
 )
 
 func TestGetGHToken(t *testing.T) {
 	t.Run("missing token", func(t *testing.T) {
+		t.Setenv("GITHUB_TOKEN", "")
 		want := errMissingGHToken
 		_, err := getGHToken()
 		if err != want {
@@ -17,8 +17,7 @@ func TestGetGHToken(t *testing.T) {
 
 	t.Run("valid token", func(t *testing.T) {
 		want := "valid-token"
-		_ = os.Setenv("GITHUB_TOKEN", want)
-		defer os.Unsetenv("GITHUB_TOKEN")
+		t.Setenv("GITHUB_TOKEN", want)
 		token, err := getGHToken()
 		if err != nil {
 			t.Fatal("Expected nil, got:", err)
@@ -43,7 +42,7 @@ func TestPRisDraft(t *testing.T) {
 
 func TestGetRepository(t *testing.T) {
 	t.Run("missing repository", func(t *testing.T) {
-		_ = os.Unsetenv("GITHUB_REPOSITORY")
+		t.Setenv("GITHUB_REPOSITORY", "")
 		want := errMissingRepository
 		_, err := getRepository()
 		if err != want {
@@ -53,8 +52,7 @@ func TestGetRepository(t *testing.T) {
 
 	t.Run("valid repository", func(t *testing.T) {
 		want := "owner/repo"
-		_ = os.Setenv("GITHUB_REPOSITORY", want)
-		defer os.Unsetenv("GITHUB_REPOSITORY")
+		t.Setenv("GITHUB_REPOSITORY", want)
 		repo, err := getRepository()
 		if err != nil {
 			t.Fatal("Expected nil, got:", err)
@@ -67,7 +65,7 @@ func TestGetRepository(t *testing.T) {
 
 func TestGetPRNumber(t *testing.T) {
 	t.Run("valid ref", func(t *testing.T) {
-		_ = os.Setenv("GITHUB_REF_NAME", "25/merge")
+		t.Setenv("GITHUB_REF_NAME", "25/merge")
 		want := 25
 		got, err := getPRNumber()
 		if err != nil {
@@ -80,7 +78,7 @@ func TestGetPRNumber(t *testing.T) {
 	})
 
 	t.Run("invalid ref", func(t *testing.T) {
-		_ = os.Setenv("GITHUB_REF_NAME", "foo/merge")
+		t.Setenv("GITHUB_REF_NAME", "foo/merge")
 		_, err := getPRNumber()
 		if err == nil {
 			t.Fatal("want error, got nil")
@@ -88,7 +86,7 @@ func TestGetPRNumber(t *testing.T) {
 	})
 
 	t.Run("invalid ref", func(t *testing.T) {
-		_ = os.Unsetenv("GITHUB_REF_NAME")
+		t.Setenv("GITHUB_REF_NAME", "")
 		_, err := getPRNumber()
 		if err == nil {
 			t.Fatal("want error, got nil")
@@ -98,16 +96,16 @@ func TestGetPRNumber(t *testing.T) {
 
 func TestGithubAction(t *testing.T) {
 	t.Run("Is github action", func(t *testing.T) {
-		_ = os.Setenv("GITHUB_ACTIONS", "true")
+		t.Setenv("GITHUB_ACTIONS", "true")
 		want := true
 		got := githubAction()
 		if got != want {
 			t.Fatalf("Want [ %v ], got [ %v ]", want, got)
 		}
-		_ = os.Unsetenv("GITHUB_ACTIONS")
 	})
 
 	t.Run("Is not github action", func(t *testing.T) {
+		t.Setenv("GITHUB_ACTIONS", "")
 		want := false
 		got := githubAction()
 		if got != want {
@@ -132,19 +130,7 @@ func TestSplitOwnerRepo(t *testing.T) {
 
 func TestPullRequest(t *testing.T) {
 	t.Run("Is pull request", func(t *testing.T) {
-		if _, ok := os.LookupEnv("GITHUB_ACTIONS"); !ok {
-			_ = os.Setenv("GITHUB_EVENT_NAME", "pull_request")
-			defer os.Unsetenv("GITHUB_EVENT_NAME")
-		}
-
-		var eventTemp string
-		if _, ok := os.LookupEnv("GITHUB_ACTIONS"); ok {
-			if v := os.Getenv("GITHUB_EVENT_NAME"); v != "pull_request" {
-				eventTemp = v
-				os.Setenv("GITHUB_EVENT_NAME", "pull_request")
-				defer func() { os.Setenv("GITHUB_EVENT_NAME", eventTemp) }()
-			}
-		}
+		t.Setenv("GITHUB_EVENT_NAME", "pull_request")
 
 		want := true
 		got := pullRequest()
@@ -154,7 +140,7 @@ func TestPullRequest(t *testing.T) {
 	})
 
 	t.Run("Is not pull request", func(t *testing.T) {
-		_ = os.Setenv("GITHUB_EVENT_NAME", "push")
+		t.Setenv("GITHUB_EVENT_NAME", "push")
 		want := false
 		got := pullRequest()
 		if got != want {
